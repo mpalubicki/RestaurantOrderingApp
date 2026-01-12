@@ -7,9 +7,9 @@ def get_secret(secret_id: str) -> str:
     if local_val:
         return local_val
 
-    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
+    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT") or os.environ.get("GCLOUD_PROJECT")
     if not project_id:
-        raise RuntimeError("GOOGLE_CLOUD_PROJECT not set")
+        raise RuntimeError("GOOGLE_CLOUD_PROJECT/GCLOUD_PROJECT not set")
 
     client = secretmanager.SecretManagerServiceClient()
     name = f"projects/{project_id}/secrets/{secret_id}/versions/latest"
