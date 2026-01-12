@@ -1,10 +1,10 @@
 from flask_pymongo import PyMongo
-from flask_sqlalchemy import SQLAlchemy
+#from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_wtf import CSRFProtect
 
 mongo = PyMongo()
-db = SQLAlchemy()
+#db = SQLAlchemy()
 login_manager = LoginManager()
 csrf = CSRFProtect()
 
@@ -37,3 +37,4 @@ class DevUser(AnonymousUserMixin):
 import os
 if os.getenv("DEV_SKIP_AUTH") == "1":
     login_manager.anonymous_user = DevUser
+
