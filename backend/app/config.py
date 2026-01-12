@@ -12,7 +12,8 @@ class Config:
         MONGO_URI = os.environ.get("MONGO_URI")
         SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
 
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///local.db")
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    #SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///local.db")
+    #SQLALCHEMY_TRACK_MODIFICATIONS = False
+
 
 
