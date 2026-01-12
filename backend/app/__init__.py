@@ -1,7 +1,8 @@
 from flask import Flask
 from .config import Config
-from .extensions import mongo, db, login_manager, csrf
+from .extensions import mongo, login_manager, csrf
 from flask_cors import CORS
+#from .extensions import db
 
 
 def create_app():
@@ -13,7 +14,7 @@ def create_app():
 
     # Init extensions
     mongo.init_app(app)
-    db.init_app(app)
+    #db.init_app(app)
     login_manager.init_app(app)
     csrf.init_app(app)
 
@@ -33,5 +34,6 @@ def create_app():
     app.register_blueprint(order_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(api_bp)
+
 
     return app
