@@ -1,7 +1,8 @@
 
 
 from flask import Blueprint, jsonify
-from .services.menu_service import get_all_menu_items
+from app.services.menu_service import get_all_menu_items
+
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 
@@ -13,3 +14,4 @@ def status():
 def api_menu():
     items = get_all_menu_items()
     return jsonify(items)
+
