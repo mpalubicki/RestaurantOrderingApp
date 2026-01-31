@@ -1,8 +1,97 @@
-<!DOCTYPE html>
-<html lang="en">
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Our Menu</h1>
-<p>Click to add to cart.</p>
+  <h1 class="mb-4">Menu</h1>
+
+  {% for category, items in menu_by_category.items() %}
+    <h2 class="h4 mt-4 mb-3">{{ category }}</h2>
+
+    <div class="row g-3">
+      {% for item in items %}
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="card h-100 {% if item.availability.status == 'unavailable' %}opacity-50{% endif %}">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <h5 class="card-title mb-1">{{ item.title }}</h5>
+                <span class="badge text-bg-secondary">{{ item.availability.status }}</span>
+              </div>
+
+              {% if item.description %}
+                <p class="card-text text-muted small mb-2">{{ item.description }}</p>
+              {% endif %}
+
+              <div class="mb-2">
+                {% for d in item.badges.dietary %}
+                  <span class="badge text-bg-light border">{{ d }}</span>
+                {% endfor %}
+              </div>
+
+              <div class="fw-semibold mb-2">
+                {% if item.price.from_price is not none %}
+                  {% if item.price.from_price == item.price.to_price %}
+                    £{{ '%.2f'|format(item.price.from_price) }}
+                  {% else %}
+                    £{{ '%.2f'|format(item.price.from_price) }} – £{{ '%.2f'|format(item.price.to_price) }}
+                  {% endif %}
+                {% else %}
+                  <span class="text-muted">Price unavailable</span>
+                {% endif %}
+              </div>
+
+              {% if item.availability.notes %}
+                <div class="small text-muted mb-2">{{ item.availability.notes }}</div>
+              {% endif %}
+
+             {% if item.variants %}
+  <ul class="list-unstyled small mb-0">
+    {% for v in item.variants %}
+      <li class="d-flex align-items-center justify-content-between gap-2 py-1 {% if not v.available %}text-muted{% endif %}">
+        <div class="flex-grow-1">
+          {{ v.label }}
+          {% if not v.available %}<span class="ms-1">(unavailable)</span>{% endif %}
+        </div>
+
+        <div style="min-width: 80px;" class="text-end">
+          {% if v.price is not none %}
+            £{{ '%.2f'|format(v.price) }}
+          {% endif %}
+        </div>
+
+
+        <form method="POST" action="/orders/add" class="d-flex align-items-center gap-2">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="menu_item_id" value="{{ item.id }}">
+          <input type="hidden" name="variant_id" value="{{ v.id }}">
+
+
+          <input
+            type="number"
+            name="qty"
+            value="1"
+            min="1"
+            class="form-control form-control-sm text-end"
+            style="width: 70px;"
+            {% if not v.available %}disabled{% endif %}
+          >
+
+          <button
+            class="btn btn-sm btn-success"
+            type="submit"
+            {% if not v.available %}disabled{% endif %}
+          >
+            Add
+          </button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endfor %}
 {% endblock %}
+
