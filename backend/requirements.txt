@@ -12,6 +12,8 @@ Flask-Login==0.6.3
 bcrypt==4.0.1
 Flask-WTF==1.2.1
 email-validator==2.1.0
+google-cloud-secret-manager
+google-auth
 
 # Cloud APIs
 google-cloud-storage==2.14.0
@@ -28,4 +30,5 @@ coverage==7.3.1
 
 # Rate Limiting
 Flask-Limiter==3.5.0
+
 
