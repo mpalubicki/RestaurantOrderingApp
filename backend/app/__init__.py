@@ -12,9 +12,13 @@ def create_app():
     CORS(app)
 
     mongo.init_app(app)
-    db.init_app(app)
     login_manager.init_app(app)
     csrf.init_app(app)
+
+    if app.config.get("SQLALCHEMY_DATABASE_URI"):
+       db.init_app(app)
+    else:
+       app.logger.warning("SQLALCHEMY_DATABASE_URI not set; skipping SQLAlchemy init")
 
 
     login_manager.login_view = "auth.login"
@@ -37,3 +41,4 @@ def create_app():
     app.register_blueprint(api_bp)
 
     return app
+
