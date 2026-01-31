@@ -1,8 +1,80 @@
-<!DOCTYPE html>
-<html lang="en">
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Shopping Cart</h1>
-<p>This is your shopping cart</p>
+<h1 class="mb-4">Shopping Cart</h1>
+
+{% if cart_items and cart_items|length > 0 %}
+  <div class="card">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Variant</th>
+              <th style="width:140px;">Qty</th>
+              <th class="text-end">Unit</th>
+              <th class="text-end">Line total</th>
+              <th style="width:120px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for i in cart_items %}
+              <tr>
+                <td>
+                  <div class="fw-semibold">{{ i.name }}</div>
+                  <div class="text-muted small">{{ i.category }}</div>
+                </td>
+                <td>{{ i.variant_label }}</td>
+
+                <td>
+                  <form method="POST" action="/orders/update" class="d-flex gap-2">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="line_id" value="{{ i.line_id }}">
+                    <input class="form-control form-control-sm" type="number" name="qty" min="0" value="{{ i.qty }}">
+                    <button class="btn btn-sm btn-outline-primary" type="submit">Update</button>
+                  </form>
+                  <div class="text-muted small mt-1">Set qty to 0 to remove</div>
+                </td>
+
+                <td class="text-end">£{{ '%.2f'|format(i.unit_price) }}</td>
+                <td class="text-end">£{{ '%.2f'|format(i.line_total) }}</td>
+
+                <td class="text-end">
+                  <form method="POST" action="/orders/remove">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="line_id" value="{{ i.line_id }}">
+                    <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <hr>
+
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="fs-5 fw-semibold">Total</div>
+        <div class="fs-5 fw-semibold">£{{ '%.2f'|format(total) }}</div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mt-3">
+        <form method="POST" action="/orders/clear">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-outline-secondary" type="submit">Clear cart</button>
+        </form>
+
+        <button class="btn btn-success" type="button" disabled>
+          Checkout (disabled)
+        </button>
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="alert alert-info">
+    Your cart is empty. <a href="/menu" class="alert-link">Go to the menu</a>.
+  </div>
+{% endif %}
 {% endblock %}
