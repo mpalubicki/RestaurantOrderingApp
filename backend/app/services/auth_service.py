@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from bson.objectid import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
-from ..extensions import mongo
+from app.extensions import mongo
 
 
 @dataclass
@@ -92,3 +92,4 @@ def get_user_by_id(user_id: str) -> AuthUser | None:
         first_name=doc.get("first_name", ""),
         last_name=doc.get("last_name", "")
     )
+
