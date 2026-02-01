@@ -15,7 +15,7 @@ csrf = CSRFProtect()
 
 @login_manager.user_loader
 def load_user(user_id):
-    from backend.app.models.user_model import User
+    from app.models.user_model import User
     return User.query.get(int(user_id))
 
 
@@ -33,3 +33,4 @@ class DevUser(AnonymousUserMixin):
 
 if os.getenv("DEV_SKIP_AUTH") == "1":
     login_manager.anonymous_user = DevUser
+
