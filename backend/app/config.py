@@ -12,7 +12,7 @@ def _running_on_gae() -> bool:
 
 def _build_cloudsql_postgres_uri(db_user: str, db_password: str, db_name: str, instance_conn_name: str) -> str:
     return (
-        f"postgresql+psycopg2://{db_user}:{db_password}@/"
+        f"postgresql+psycopg://{db_user}:{db_password}@/"
         f"{db_name}?host=/cloudsql/{instance_conn_name}"
     )
 
@@ -74,7 +74,7 @@ class Config:
         SECRET_KEY = _strip_or_none(os.getenv("SECRET_KEY"))
         MONGO_URI = _normalize_mongo_uri(os.getenv("MONGO_URI"))
 
-        # support either name locally
         SQLALCHEMY_DATABASE_URI = _strip_or_none(
             os.getenv("SQLALCHEMY_DATABASE_URI") or os.getenv("DATABASE_URL")
         )
+
