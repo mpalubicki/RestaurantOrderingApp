@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required
-from backend.app.services.auth_service import create_user_account, authenticate_user
+from app.services.auth_service import create_user_account, authenticate_user
 
 
 auth_bp = Blueprint("auth", __name__)
@@ -54,3 +54,4 @@ def logout():
     logout_user()
     flash("Logged out.", "success")
     return redirect(url_for("main.index"))
+
