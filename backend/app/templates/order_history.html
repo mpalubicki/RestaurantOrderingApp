@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>My Orders</h2>
+
+  {% if not orders %}
+    <p>No orders yet.</p>
+  {% else %}
+    <ul>
+      {% for order in orders %}
+        <li>
+          <a href="{{ url_for('orders.confirmation', order_id=order.id) }}">
+            Order #{{ order.id }}
+          </a>
+          — {{ order.status }} — £{{ order.total_amount }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endblock %}
