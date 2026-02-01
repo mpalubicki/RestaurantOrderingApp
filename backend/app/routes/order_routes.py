@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required
-from backend.app.services.order_service import (
+from app.services.order_service import (
     get_cart, add_to_cart, update_cart_line, remove_cart_line, clear_cart, cart_totals
 )
 
@@ -66,3 +66,4 @@ def orders_clear():
     clear_cart()
     flash("Cart emptied.", "success")
     return redirect(url_for("orders.orders"))
+
