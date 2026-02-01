@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
-from backend.app.services.menu_service import get_menu_boxes
-from backend.app.services.translate_service import translate_text
+from app.services.menu_service import get_menu_boxes
+from app.services.translate_service import translate_text
 
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
@@ -32,6 +32,7 @@ def api_translate():
         "target_language": target,
         "translated": translated
     })
+
 
 
 
