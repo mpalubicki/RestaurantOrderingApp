@@ -3,6 +3,10 @@ from flask import session
 from flask_login import current_user
 from app.extensions import mongo
 from app.services.menu_service import get_menu_boxes
+from decimal import Decimal
+from app.extensions import db
+from app.models.sql_order_model import Order, OrderItem
+
 
 
 def _get_cart_key() -> dict:
@@ -150,4 +154,48 @@ def cart_totals(cart: dict) -> tuple[list[dict], float]:
         })
 
     return cart_items, total
+
+def checkout_to_sql_order() -> int:
+    cart = get_cart()
+    items, total = cart_totals(cart)
+
+    if not items:
+        raise ValueError("Your cart is empty.")
+
+    order = Order(
+        user_id=int(current_user.get_id()),
+        status="created",
+        currency="GBP",
+        total_amount=Decimal(str(total)).quantize(Decimal("0.01")),
+    )
+    db.session.add(order)
+    db.session.flush()  # gets order.id without committing yet
+
+    for line in items:
+        unit = Decimal(str(line["unit_price"])).quantize(Decimal("0.01"))
+        qty = int(line["qty"])
+        line_total = (unit * qty).quantize(Decimal("0.01"))
+
+        oi = OrderItem(
+            order_id=order.id,
+            menu_item_id=str(cart_line_lookup(cart, line["line_id"]).get("menu_item_id")),
+            variant_id=str(cart_line_lookup(cart, line["line_id"]).get("variant_id")),
+            name=line["name"],
+            variant_label=line["variant_label"],
+            unit_price=unit,
+            qty=qty,
+            line_total=line_total,
+        )
+        db.session.add(oi)
+
+    db.session.commit()
+    clear_cart()
+    return order.id
+
+
+def cart_line_lookup(cart: dict, line_id: str) -> dict:
+    for line in cart.get("items", []) or []:
+        if line.get("_id") == line_id:
+            return line
+    return {}
 
