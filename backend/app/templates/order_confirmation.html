@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Order Confirmation</h2>
+
+  <p><strong>Order ID:</strong> {{ order.id }}</p>
+  <p><strong>Status:</strong> {{ order.status }}</p>
+  <p><strong>Total:</strong> £{{ order.total_amount }}</p>
+
+  <h3>Items</h3>
+  <ul>
+    {% for item in order.items %}
+      <li>
+        {{ item.name }} ({{ item.variant_label }}) x{{ item.qty }}
+        — £{{ item.line_total }}
+      </li>
+    {% endfor %}
+  </ul>
+
+  <a href="{{ url_for('menu.menu') }}">Back to menu</a>
+{% endblock %}
