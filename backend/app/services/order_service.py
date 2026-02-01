@@ -1,8 +1,8 @@
 from uuid import uuid4
 from flask import session
 from flask_login import current_user
-from ..extensions import mongo
-from backend.app.services.menu_service import get_menu_boxes
+from app.extensions import mongo
+from app.services.menu_service import get_menu_boxes
 
 
 def _get_cart_key() -> dict:
@@ -150,3 +150,4 @@ def cart_totals(cart: dict) -> tuple[list[dict], float]:
         })
 
     return cart_items, total
+
