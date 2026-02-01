@@ -1,4 +1,4 @@
-from ..extensions import mongo
+from app.extensions import mongo
 from bson.objectid import ObjectId
 
 
@@ -155,4 +155,5 @@ def get_menu_boxes(group_by_category: bool = True):
             return (1, 9999)
 
     return dict(sorted(grouped.items(), key=lambda kv: _category_sort_key(kv[0])))
+
 
