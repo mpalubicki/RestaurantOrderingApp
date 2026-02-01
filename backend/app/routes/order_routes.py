@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from flask_login import login_required
+from flask_login import login_required, current_user
 from app.services.order_service import (
-    get_cart, add_to_cart, update_cart_line, remove_cart_line, clear_cart, cart_totals
+    get_cart, add_to_cart, update_cart_line, remove_cart_line, clear_cart, cart_totals, checkout_to_sql_order
 )
-
+from app.models.sql_order_model import Order
 
 order_bp = Blueprint("orders", __name__)
 
@@ -67,3 +67,33 @@ def orders_clear():
     flash("Cart emptied.", "success")
     return redirect(url_for("orders.orders"))
 
+
+@order_bp.route("/orders/checkout", methods=["POST"])
+@login_required
+def checkout():
+    try:
+        order_id = checkout_to_sql_order()
+        flash("Order placed successfully.", "success")
+        return redirect(url_for("orders.confirmation", order_id=order_id))
+    except ValueError as e:
+        flash(str(e), "danger")
+        return redirect(url_for("orders.orders"))
+
+
+@order_bp.route("/orders/confirmation/<int:order_id>", methods=["GET"])
+@login_required
+def confirmation(order_id: int):
+    order = Order.query.filter_by(id=order_id, user_id=int(current_user.get_id())).first_or_404()
+    return render_template("order_confirmation.html", order=order)
+
+
+@order_bp.route("/orders/history", methods=["GET"])
+@login_required
+def history():
+    orders = (
+        Order.query
+        .filter_by(user_id=int(current_user.get_id()))
+        .order_by(Order.created_at.desc())
+        .all()
+    )
+    return render_template("order_history.html", orders=orders)
