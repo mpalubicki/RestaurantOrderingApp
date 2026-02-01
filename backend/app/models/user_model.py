@@ -1,5 +1,5 @@
 from flask_login import UserMixin
-from ..extensions import db
+from app.extensions import db
 
 
 class User(UserMixin, db.Model):
@@ -11,3 +11,4 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
         return f"<User {self.email}>"
+
