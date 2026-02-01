@@ -1,95 +1,49 @@
-from dataclasses import dataclass
-from bson.objectid import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
-from app.extensions import mongo
+from app.extensions import db
+from app.models.user_model import User
 
 
-@dataclass
-class AuthUser:
-    id: str
-    email: str
-    first_name: str
-    last_name: str
-
-    @property
-    def is_authenticated(self): return True
-
-    @property
-    def is_active(self): return True
-
-    @property
-    def is_anonymous(self): return False
-
-    def get_id(self):
-        return self.id
-
-
-def _users_col():
-    return mongo.db.users
-
-
-def create_user_account(email: str, password: str, first_name: str, last_name: str) -> AuthUser:
+def create_user_account(email: str, password: str, first_name: str, last_name: str) -> User:
     email = (email or "").strip().lower()
     first_name = (first_name or "").strip()
     last_name = (last_name or "").strip()
+    password = password or ""
 
     if not email or not password or not first_name or not last_name:
         raise ValueError("All fields are required.")
 
-    existing = _users_col().find_one({"email": email})
+    existing = User.query.filter_by(email=email).first()
     if existing:
         raise ValueError("An account with that email already exists.")
 
-    doc = {
-        "email": email,
-        "password_hash": generate_password_hash(password),
-        "first_name": first_name,
-        "last_name": last_name,
-    }
-
-    res = _users_col().insert_one(doc)
-
-    return AuthUser(
-        id=str(res.inserted_id),
+    user = User(
         email=email,
+        password_hash=generate_password_hash(password),
         first_name=first_name,
-        last_name=last_name
+        last_name=last_name,
     )
+    db.session.add(user)
+    db.session.commit()
+    return user
 
 
-def authenticate_user(email: str, password: str) -> AuthUser | None:
+def authenticate_user(email: str, password: str) -> User | None:
     email = (email or "").strip().lower()
     password = password or ""
 
-    doc = _users_col().find_one({"email": email})
-    if not doc:
+    user = User.query.filter_by(email=email).first()
+    if not user:
         return None
 
-    if not check_password_hash(doc.get("password_hash", ""), password):
+    if not check_password_hash(user.password_hash, password):
         return None
 
-    return AuthUser(
-        id=str(doc["_id"]),
-        email=doc.get("email", ""),
-        first_name=doc.get("first_name", ""),
-        last_name=doc.get("last_name", "")
-    )
+    return user
 
 
-def get_user_by_id(user_id: str) -> AuthUser | None:
+def get_user_by_id(user_id: str) -> User | None:
     try:
-        oid = ObjectId(user_id)
+        uid = int(user_id)
     except Exception:
         return None
-
-    doc = _users_col().find_one({"_id": oid})
-    if not doc:
-        return None
-
-    return AuthUser(
-        id=str(doc["_id"]),
-        email=doc.get("email", ""),
-        first_name=doc.get("first_name", ""),
-        last_name=doc.get("last_name", "")
-    )
-
+    return db.session.get(User, uid)
