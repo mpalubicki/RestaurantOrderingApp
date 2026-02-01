@@ -25,10 +25,11 @@
                   <div class="fw-semibold">{{ i.name }}</div>
                   <div class="text-muted small">{{ i.category }}</div>
                 </td>
+
                 <td>{{ i.variant_label }}</td>
 
                 <td>
-                  <form method="POST" action="/orders/update" class="d-flex gap-2">
+                  <form method="POST" action="{{ url_for('orders.orders_update') }}" class="d-flex gap-2">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="line_id" value="{{ i.line_id }}">
                     <input class="form-control form-control-sm" type="number" name="qty" min="0" value="{{ i.qty }}">
@@ -41,7 +42,7 @@
                 <td class="text-end">£{{ '%.2f'|format(i.line_total) }}</td>
 
                 <td class="text-end">
-                  <form method="POST" action="/orders/remove">
+                  <form method="POST" action="{{ url_for('orders.orders_remove') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="line_id" value="{{ i.line_id }}">
                     <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>
@@ -60,21 +61,29 @@
         <div class="fs-5 fw-semibold">£{{ '%.2f'|format(total) }}</div>
       </div>
 
-      <div class="d-flex justify-content-between align-items-center mt-3">
-        <form method="POST" action="/orders/clear">
+      <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+        <form method="POST" action="{{ url_for('orders.orders_clear') }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button class="btn btn-outline-secondary" type="submit">Clear cart</button>
         </form>
 
-        <button class="btn btn-success" type="button" disabled>
-          Checkout (disabled)
-        </button>
+        <div class="d-flex align-items-center gap-2">
+          <a class="btn btn-link" href="{{ url_for('orders.history') }}">View order history</a>
+
+          <form method="POST" action="{{ url_for('orders.checkout') }}" class="m-0">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-success" type="submit">
+              Checkout
+            </button>
+          </form>
+        </div>
       </div>
+
     </div>
   </div>
 {% else %}
   <div class="alert alert-info">
-    Your cart is empty. <a href="/menu" class="alert-link">Go to the menu</a>.
+    Your cart is empty. <a href="{{ url_for('menu.menu') }}" class="alert-link">Go to the menu</a>.
   </div>
 {% endif %}
 {% endblock %}
