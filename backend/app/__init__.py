@@ -2,7 +2,7 @@ from flask import Flask
 from .config import Config
 from .extensions import mongo, db, login_manager, csrf
 from flask_cors import CORS
-from .services.auth_service import get_user_by_id
+from services.auth_service import get_user_by_id
 
 
 def create_app():
@@ -41,4 +41,5 @@ def create_app():
     app.register_blueprint(api_bp)
 
     return app
+
 
