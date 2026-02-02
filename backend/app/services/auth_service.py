@@ -1,6 +1,7 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.extensions import db
 from app.models.user_model import User
+from flask import current_app
 
 
 def create_user_account(email: str, password: str, first_name: str, last_name: str) -> User:
@@ -16,12 +17,17 @@ def create_user_account(email: str, password: str, first_name: str, last_name: s
     if existing:
         raise ValueError("An account with that email already exists.")
 
+    admin_emails = current_app.config.get("ADMIN_EMAILS", set())
+    is_admin = (email or "").strip().lower() in admin_emails
+
     user = User(
         email=email,
-        password_hash=generate_password_hash(password),
+        password_hash=password_hash,
         first_name=first_name,
         last_name=last_name,
+        is_admin=is_admin,
     )
+
     db.session.add(user)
     db.session.commit()
     return user
@@ -47,3 +53,4 @@ def get_user_by_id(user_id: str) -> User | None:
     except Exception:
         return None
     return db.session.get(User, uid)
+
