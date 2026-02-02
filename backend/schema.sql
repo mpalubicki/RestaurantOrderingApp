@@ -1,24 +1,36 @@
 sql
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    role ENUM('user', 'admin') DEFAULT 'user'
+CREATE TABLE IF NOT EXISTS users (
+    id              SERIAL PRIMARY KEY,
+    email           VARCHAR(255) UNIQUE NOT NULL,
+    password_hash   VARCHAR(255) NOT NULL,
+    first_name      VARCHAR(100) NOT NULL,
+    last_name       VARCHAR(100) NOT NULL,
+    is_admin        BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE orders (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    total_price DECIMAL(10,2) NOT NULL,
-    status ENUM('pending', 'confirmed', 'preparing', 'out_for_delivery', 'delivered') DEFAULT 'pending',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
 
-CREATE TABLE order_items (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    order_id INT NOT NULL,
-    menu_item_id VARCHAR(24) NOT NULL,  -- MongoDB _id
-    quantity INT NOT NULL DEFAULT 1,
-    FOREIGN KEY (order_id) REFERENCES orders(id)
+CREATE TABLE IF NOT EXISTS orders (
+    id              SERIAL PRIMARY KEY,
+    user_id         INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    status          VARCHAR(50) NOT NULL DEFAULT 'created',
+    currency        VARCHAR(3) NOT NULL DEFAULT 'GBP',
+    total_amount    NUMERIC(10,2) NOT NULL DEFAULT 0,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
+CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
+
+
+CREATE TABLE IF NOT EXISTS order_items (
+    id              SERIAL PRIMARY KEY,
+    order_id        INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    menu_item_id    VARCHAR(64) NOT NULL,
+    variant_id      VARCHAR(64) NOT NULL,
+    name            VARCHAR(255) NOT NULL,
+    variant_label   VARCHAR(255) NOT NULL,
+    unit_price      NUMERIC(10,2) NOT NULL,
+    qty             INTEGER NOT NULL,
+    line_total      NUMERIC(10,2) NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
