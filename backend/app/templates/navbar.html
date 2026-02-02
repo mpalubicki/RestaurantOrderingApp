@@ -3,7 +3,24 @@
     <a class="navbar-brand" href="/">Restaurant</a>
 
     <div class="collapse navbar-collapse">
-      <ul class="navbar-nav ms-auto">
+      <ul class="navbar-nav ms-auto align-items-lg-center">
+
+        <li class="nav-item me-3">
+          <form method="POST" action="{{ url_for('main.set_language') }}" class="d-flex gap-2 align-items-center">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="next" value="{{ request.path }}{% if request.query_string %}?{{ request.query_string.decode('utf-8') }}{% endif %}">
+
+            <select name="lang" class="form-select form-select-sm" onchange="this.form.submit()">
+              {% set current_lang = session.get('lang', 'en') %}
+              <option value="en" {% if current_lang == 'en' %}selected{% endif %}>English</option>
+              <option value="it" {% if current_lang == 'it' %}selected{% endif %}>Italiano</option>
+              <option value="fr" {% if current_lang == 'fr' %}selected{% endif %}>Français</option>
+              <option value="es" {% if current_lang == 'es' %}selected{% endif %}>Español</option>
+              <option value="de" {% if current_lang == 'de' %}selected{% endif %}>Deutsch</option>
+            </select>
+          </form>
+        </li>
+
         {% if current_user.is_authenticated %}
           <li class="nav-item"><a class="nav-link" href="/menu">Menu</a></li>
           <li class="nav-item"><a class="nav-link" href="/orders">My Orders</a></li>
