@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from bson import ObjectId
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from app.extensions import mongo
@@ -77,3 +78,39 @@ def orders_dashboard():
 
     orders = get_recent_orders_for_admin(limit=50)
     return render_template("admin_orders.html", orders=orders)
+
+
+@admin_bp.route("/homepage-slots", methods=["POST"])
+@login_required
+def update_homepage_slots():
+    guard = _require_admin()
+    if guard:
+        return guard
+
+    def parse_image_id(value: str):
+        v = (value or "").strip()
+        if v == "":
+            return None
+        return ObjectId(v)
+
+    slot1 = parse_image_id(request.form.get("slot1"))
+    slot2 = parse_image_id(request.form.get("slot2"))
+    slot3 = parse_image_id(request.form.get("slot3"))
+    slot4 = parse_image_id(request.form.get("slot4"))
+
+    mongo.db.homepage_slots.update_one(
+        {"_id": "homepage"},
+        {"$set": {
+            "slot1": slot1,
+            "slot2": slot2,
+            "slot3": slot3,
+            "slot4": slot4,
+            "updated_at": datetime.now(timezone.utc),
+        }},
+        upsert=True,
+    )
+
+    flash("Homepage image slots updated.", "success")
+    return redirect(url_for("admin.upload_menu_image_page"))
+
+
