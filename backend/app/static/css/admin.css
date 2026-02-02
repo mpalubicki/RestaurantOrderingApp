@@ -1,0 +1,55 @@
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.slot-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  background: #fff;
+}
+
+.img-preview {
+  margin-top: 10px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f3f4f6;
+  aspect-ratio: 16 / 9;
+}
+
+.img-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.img-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap:16px;
+}
+
+.img-card{
+  border-radius:12px;
+  overflow:hidden;
+  background:#f3f4f6;
+  padding: 10px;
+}
+
+.img-media{
+  aspect-ratio: 16 / 9;
+  overflow:hidden;
+  border-radius: 12px;
+  background: #e5e7eb;
+}
+
+.img-media img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
