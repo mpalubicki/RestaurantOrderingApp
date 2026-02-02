@@ -2,7 +2,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app.extensions import db
 from app.models.user_model import User
 from flask import current_app
-from __future__ import annotations
 
 
 def create_user_account(
@@ -57,5 +56,6 @@ def get_user_by_id(user_id: str) -> User | None:
     except Exception:
         return None
     return db.session.get(User, uid)
+
 
 
