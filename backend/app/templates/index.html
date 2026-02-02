@@ -3,4 +3,20 @@
 {% block content %}
 <h1>Welcome to the Restaurant App</h1>
 <p>Select an option from the menu.</p>
+
+<h2>Featured images</h2>
+
+<div class="home-slots">
+  {% for img in homepage_slots %}
+    <div class="home-slot">
+      {% if img %}
+        <img src="{{ img.url }}" alt="Featured image">
+      {% else %}
+        <div class="home-slot--empty">
+          <span>No image selected</span>
+        </div>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
 {% endblock %}
