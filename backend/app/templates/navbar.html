@@ -2,7 +2,14 @@
   <div class="container-fluid">
     <a class="navbar-brand" href="/">Restaurant</a>
 
-    <div class="collapse navbar-collapse">
+    <button class="navbar-toggler" type="button"
+            data-bs-toggle="collapse" data-bs-target="#navbarMain"
+            aria-controls="navbarMain" aria-expanded="false"
+            aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMain">
       <ul class="navbar-nav ms-auto align-items-lg-center">
 
         <li class="nav-item me-3">
@@ -23,11 +30,6 @@
 
         {% if current_user.is_authenticated %}
           <li class="nav-item"><a class="nav-link" href="/menu">Menu</a></li>
-
-          {% if current_user.is_admin %}
-            <li class="nav-item"><a class="nav-link" href="/admin">Admin</a></li>
-          {% endif %}
-
           <li class="nav-item"><a class="nav-link" href="/orders">My Orders</a></li>
 
           <li class="nav-item">
