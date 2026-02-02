@@ -1,7 +1,7 @@
 from app.extensions import db
-from app.models.user import User
-from app.models.order import Order
-from app.models.order_item import OrderItem
+from app.models.user_model import User
+from app.models.sql_order_model import Order
+from app.models.sql_order_model import OrderItem
 
 
 def get_recent_orders_for_admin(limit: int = 50):
