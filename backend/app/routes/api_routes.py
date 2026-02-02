@@ -1,10 +1,11 @@
 from flask import Blueprint, jsonify, request
 from app.services.menu_service import get_menu_boxes
 from app.services.translate_service import translate_text
+from flask_login import current_user, login_required
+from app.services.storage_service import upload_menu_image
 
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
-
 
 @api_bp.route("/status", methods=["GET"])
 def status():
@@ -35,6 +36,21 @@ def api_translate():
     })
 
 
+@api_bp.route("/admin/upload-menu-image", methods=["POST"])
+@login_required
+def api_admin_upload_menu_image():
+    if not getattr(current_user, "is_admin", False):
+        return jsonify({"error": "Admin access required"}), 403
+
+    if "file" not in request.files:
+        return jsonify({"error": "Missing file field 'file'"}), 400
+
+    f = request.files["file"]
+    if not f or not f.filename:
+        return jsonify({"error": "No file selected"}), 400
+
+    url = upload_menu_image(f, folder="menu")
+    return jsonify({"url": url})
 
 
 
