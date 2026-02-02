@@ -1,5 +1,6 @@
 from app.extensions import mongo
 from bson.objectid import ObjectId
+from app.services.translate_service import translate_texts
 
 
 def compute_availability(item: dict) -> dict:
@@ -113,7 +114,7 @@ def format_menu_item_box(item: dict) -> dict:
     }
 
 
-def get_menu_boxes(group_by_category: bool = True):
+def get_menu_boxes(group_by_category: bool = True, target_language: str | None = None):
     docs = list(mongo.db.menu_items.find())
 
     for d in docs:
@@ -122,6 +123,39 @@ def get_menu_boxes(group_by_category: bool = True):
 
     items = _flatten_menu_docs(docs)
     boxes = [format_menu_item_box(item) for item in items]
+
+    if target_language:
+        target_language = target_language.strip().lower()
+
+    if target_language and target_language not in ("en", "en-gb", "en-us"):
+        to_translate = []
+        pointers = []  # (box_idx, field_name) or (box_idx, "variant", variant_idx)
+
+        for bi, b in enumerate(boxes):
+            title = (b.get("title") or "").strip()
+            desc = (b.get("description") or "").strip()
+            if title:
+                to_translate.append(title)
+                pointers.append((bi, "title"))
+            if desc:
+                to_translate.append(desc)
+                pointers.append((bi, "description"))
+
+            for vi, v in enumerate(b.get("variants") or []):
+                lab = (v.get("label") or "").strip()
+                if lab:
+                    to_translate.append(lab)
+                    pointers.append((bi, "variant", vi))
+
+        translated = translate_texts(to_translate, target_language=target_language)
+
+        for (ptr, tr) in zip(pointers, translated):
+            if len(ptr) == 2:
+                bi, field = ptr
+                boxes[bi][field] = tr
+            else:
+                bi, _, vi = ptr
+                boxes[bi]["variants"][vi]["label"] = tr
 
     if not group_by_category:
         return boxes
@@ -147,6 +181,15 @@ def get_menu_boxes(group_by_category: bool = True):
         "Wine",
     ]
 
+    
+    def _category_sort_key(category_name: str):
+        try:
+            return (0, PREFERRED_CATEGORY_ORDER.index(category_name))
+        except ValueError:
+            return (1, 9999)
+
+    return dict(sorted(grouped.items(), key=lambda kv: _category_sort_key(kv[0])))
+
 
     def _category_sort_key(category_name: str):
         try:
@@ -155,5 +198,6 @@ def get_menu_boxes(group_by_category: bool = True):
             return (1, 9999)
 
     return dict(sorted(grouped.items(), key=lambda kv: _category_sort_key(kv[0])))
+
 
 
