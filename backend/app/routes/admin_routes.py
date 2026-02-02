@@ -194,3 +194,27 @@ def orders_dashboard():
 
     orders = get_recent_orders_for_admin(limit=50)
     return render_template("admin_orders.html", orders=orders)
+
+
+@admin_bp.route("/images", methods=["GET"])
+@login_required
+def images_library():
+    guard = _require_admin()
+    if guard:
+        return guard
+
+    images = list(
+        mongo.db.uploaded_images.find({"active": True})
+        .sort("uploaded_at", -1)
+        .limit(200)
+    )
+
+    slots = mongo.db.homepage_slots.find_one({"_id": "homepage"}) or {
+        "_id": "homepage",
+        "slot1": None,
+        "slot2": None,
+        "slot3": None,
+        "slot4": None,
+    }
+
+    return render_template("admin_images.html", images=images, slots=slots)
