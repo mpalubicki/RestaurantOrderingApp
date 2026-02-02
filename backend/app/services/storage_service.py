@@ -1,8 +1,9 @@
-import os
 import uuid
-from datetime import timedelta
 from google.cloud import storage
 from flask import current_app
+
+
+ALLOWED_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
 def _bucket_name() -> str:
@@ -12,23 +13,29 @@ def _bucket_name() -> str:
     return b
 
 
+def _safe_extension(filename: str | None) -> str:
+    name = (filename or "").strip().lower()
+    if "." in name:
+        ext = "." + name.rsplit(".", 1)[-1]
+        if ext in ALLOWED_EXTS:
+            return ext
+    return ".jpg"
+
+
 def upload_menu_image(file_storage, folder: str = "menu") -> str:
     client = storage.Client()
-    bucket = client.bucket(_bucket_name())
+    bucket_name = _bucket_name()
+    bucket = client.bucket(bucket_name)
 
-    filename = (file_storage.filename or "").strip()
-    ext = ""
-    if "." in filename:
-        ext = "." + filename.rsplit(".", 1)[-1].lower()
-
-    if ext not in (".jpg", ".jpeg", ".png", ".webp"):
-        ext = ".jpg"
-
+    ext = _safe_extension(getattr(file_storage, "filename", None))
     object_name = f"{folder}/{uuid.uuid4().hex}{ext}"
+
     blob = bucket.blob(object_name)
 
-    blob.upload_from_file(file_storage.stream, content_type=file_storage.mimetype)
+    blob.upload_from_file(
+        file_storage.stream,
+        content_type=getattr(file_storage, "mimetype", "image/jpeg"),
+        rewind=True,  # ensures stream position is correct
+    )
 
-    blob.make_public()
-
-    return blob.public_url
+    return f"https://storage.googleapis.com/{bucket_name}/{object_name}"
