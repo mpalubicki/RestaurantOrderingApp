@@ -1,6 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
 <h1>Image library</h1>
 
 <form method="POST" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <label>Upload an image</label>
   <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp" required>
   <button type="submit">Upload</button>
@@ -11,6 +15,7 @@
 <h2>Homepage image slots (4)</h2>
 
 <form method="POST" action="{{ url_for('admin.update_homepage_slots') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="slot-grid">
     {% for n in [1,2,3,4] %}
       {% set key = 'slot' ~ n %}
@@ -56,11 +61,13 @@
       <small>{{ img.object_name }}</small>
 
       <form method="POST" action="{{ url_for('admin.hide_uploaded_image') }}" style="margin-top:8px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="image_id" value="{{ img._id }}">
         <button type="submit">Hide from library</button>
       </form>
 
       <form method="POST" action="{{ url_for('admin.delete_uploaded_image') }}" style="margin-top:6px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="image_id" value="{{ img._id }}">
         <button type="submit">Delete from bucket</button>
       </form>
@@ -69,3 +76,4 @@
     <p>No images yet.</p>
   {% endfor %}
 </div>
+{% endblock %}
