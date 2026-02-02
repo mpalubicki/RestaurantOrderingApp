@@ -1,46 +1,33 @@
 {% extends "base.html" %}
 
 {% block content %}
-<style>
-  .img-preview img {
-    max-height: 140px;
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-    display: block;
-  }
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_images.css') }}">
 
-  .img-media img {
-    max-height: 140px;
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-    display: block;
-  }
-</style>
+<h1 class="mb-3">Image library</h1>
 
-<h1>Image library</h1>
-
-<form method="POST" enctype="multipart/form-data">
+<form method="POST" enctype="multipart/form-data" class="mb-3">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <label>Upload an image</label>
-  <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp" required>
-  <button type="submit">Upload</button>
+  <div class="mb-2">
+    <label class="form-label">Upload an image</label>
+    <input class="form-control" type="file" name="image" accept=".jpg,.jpeg,.png,.webp" required>
+  </div>
+  <button class="btn btn-primary" type="submit">Upload</button>
 </form>
 
-<hr>
+<hr class="my-4">
 
-<h2>Homepage image slots (4)</h2>
+<h2 class="mb-3">Homepage image slots (4)</h2>
 
-<form method="POST" action="{{ url_for('admin.update_homepage_slots') }}">
+<form method="POST" action="{{ url_for('admin.update_homepage_slots') }}" class="mb-3">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
   <div class="slot-grid">
     {% for n in [1,2,3,4] %}
       {% set key = 'slot' ~ n %}
       <div class="slot-card">
-        <h3>Slot {{ n }}</h3>
+        <h3 class="h5 mb-2">Slot {{ n }}</h3>
 
-        <select name="{{ key }}">
+        <select class="form-select" name="{{ key }}">
           <option value="">(Empty)</option>
           {% for img in images %}
             <option value="{{ img._id }}" {% if slots and slots[key] and img._id == slots[key] %}selected{% endif %}>
@@ -56,38 +43,42 @@
               <img src="{{ current[0].url }}" alt="Slot {{ n }} image">
             </div>
           {% endif %}
-          <p><small>Currently set</small></p>
+          <p class="mt-2 mb-0"><small class="text-muted">Currently set</small></p>
         {% else %}
-          <p><small>Empty</small></p>
+          <p class="mt-2 mb-0"><small class="text-muted">Empty</small></p>
         {% endif %}
       </div>
     {% endfor %}
   </div>
 
-  <button type="submit">Save slot selection</button>
+  <button class="btn btn-success" type="submit">Save slot selection</button>
 </form>
 
-<hr>
+<hr class="my-4">
 
-<h2>Uploaded images</h2>
+<h2 class="mb-3">Uploaded images</h2>
+
 <div class="img-grid">
   {% for img in images %}
     <div class="img-card">
       <div class="img-media">
         <img src="{{ img.url }}" alt="Uploaded image">
       </div>
-      <small>{{ img.object_name }}</small>
 
-      <form method="POST" action="{{ url_for('admin.hide_uploaded_image') }}" style="margin-top:8px;">
+      <div class="mt-2">
+        <small class="text-muted">{{ img.object_name }}</small>
+      </div>
+
+      <form method="POST" action="{{ url_for('admin.hide_uploaded_image') }}" class="mt-2">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="image_id" value="{{ img._id }}">
-        <button type="submit">Hide from library</button>
+        <button class="btn btn-outline-secondary btn-sm" type="submit">Hide from library</button>
       </form>
 
-      <form method="POST" action="{{ url_for('admin.delete_uploaded_image') }}" style="margin-top:6px;">
+      <form method="POST" action="{{ url_for('admin.delete_uploaded_image') }}" class="mt-2">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="image_id" value="{{ img._id }}">
-        <button type="submit">Delete from bucket</button>
+        <button class="btn btn-outline-danger btn-sm" type="submit">Delete from bucket</button>
       </form>
     </div>
   {% else %}
