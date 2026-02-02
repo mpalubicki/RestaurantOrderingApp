@@ -32,6 +32,10 @@
           <li class="nav-item"><a class="nav-link" href="/menu">Menu</a></li>
           <li class="nav-item"><a class="nav-link" href="/orders">My Orders</a></li>
 
+          {% if current_user.is_admin %}
+            <li class="nav-item"><a class="nav-link" href="/admin/">Admin</a></li>
+          {% endif %}
+
           <li class="nav-item">
             <form method="POST" action="{{ url_for('auth.logout') }}" class="d-inline">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
