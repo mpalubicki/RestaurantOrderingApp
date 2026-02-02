@@ -1,0 +1,71 @@
+<h1>Image library</h1>
+
+<form method="POST" enctype="multipart/form-data">
+  <label>Upload an image</label>
+  <input type="file" name="image" accept=".jpg,.jpeg,.png,.webp" required>
+  <button type="submit">Upload</button>
+</form>
+
+<hr>
+
+<h2>Homepage image slots (4)</h2>
+
+<form method="POST" action="{{ url_for('admin.update_homepage_slots') }}">
+  <div class="slot-grid">
+    {% for n in [1,2,3,4] %}
+      {% set key = 'slot' ~ n %}
+      <div class="slot-card">
+        <h3>Slot {{ n }}</h3>
+
+        <select name="{{ key }}">
+          <option value="">(Empty)</option>
+          {% for img in images %}
+            <option value="{{ img._id }}" {% if slots and slots[key] and img._id == slots[key] %}selected{% endif %}>
+              {{ img.object_name }}
+            </option>
+          {% endfor %}
+        </select>
+
+        {% if slots and slots[key] %}
+          {% set current = (images | selectattr("_id", "equalto", slots[key]) | list) %}
+          {% if current and current[0].url %}
+            <div class="img-preview">
+              <img src="{{ current[0].url }}" alt="Slot {{ n }} image">
+            </div>
+          {% endif %}
+          <p><small>Currently set</small></p>
+        {% else %}
+          <p><small>Empty</small></p>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <button type="submit">Save slot selection</button>
+</form>
+
+<hr>
+
+<h2>Uploaded images</h2>
+<div class="img-grid">
+  {% for img in images %}
+    <div class="img-card">
+      <div class="img-media">
+        <img src="{{ img.url }}" alt="Uploaded image">
+      </div>
+      <small>{{ img.object_name }}</small>
+
+      <form method="POST" action="{{ url_for('admin.hide_uploaded_image') }}" style="margin-top:8px;">
+        <input type="hidden" name="image_id" value="{{ img._id }}">
+        <button type="submit">Hide from library</button>
+      </form>
+
+      <form method="POST" action="{{ url_for('admin.delete_uploaded_image') }}" style="margin-top:6px;">
+        <input type="hidden" name="image_id" value="{{ img._id }}">
+        <button type="submit">Delete from bucket</button>
+      </form>
+    </div>
+  {% else %}
+    <p>No images yet.</p>
+  {% endfor %}
+</div>
