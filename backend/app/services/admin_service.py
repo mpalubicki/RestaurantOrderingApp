@@ -1,39 +1,34 @@
-from app.extensions import db
 from app.models.user_model import User
 from app.models.sql_order_model import Order
-from app.models.sql_order_model import OrderItem
+from sqlalchemy.orm import joinedload
 
 
 def get_recent_orders_for_admin(limit: int = 50):
-    q = (
-        db.session.query(Order, User)
-        .join(User, User.id == Order.user_id)
+    orders = (
+        Order.query
+        .options(joinedload(Order.user), joinedload(Order.order_items))
         .order_by(Order.created_at.desc())
         .limit(limit)
         .all()
     )
 
     results = []
-    for order, user in q:
-        items = (
-            db.session.query(OrderItem)
-            .filter(OrderItem.order_id == order.id)
-            .all()
-        )
+    for order in orders:
+        user: User | None = getattr(order, "user", None)
 
         results.append({
             "order_id": order.id,
             "created_at": order.created_at,
             "total": float(order.total_amount or 0),
-            "user_first_name": user.first_name,
-            "user_last_name": user.last_name,
-            "items": [
+            "user_first_name": getattr(user, "first_name", "") if user else "",
+            "user_last_name": getattr(user, "last_name", "") if user else "",
+            "order_items": [
                 {
                     "name": it.name,
                     "variant_label": it.variant_label,
                     "qty": it.qty,
                 }
-                for it in items
+                for it in (order.order_items or [])
             ],
         })
 
