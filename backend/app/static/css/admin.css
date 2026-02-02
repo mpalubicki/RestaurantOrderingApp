@@ -1,7 +1,7 @@
 .slot-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(240px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(2, minmax(200px, 1fr));
+  gap: 12px;
   margin-bottom: 12px;
 }
 
@@ -17,7 +17,7 @@
   border-radius: 12px;
   overflow: hidden;
   background: #f3f4f6;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 16 / 12;
 }
 
 .img-preview img {
@@ -29,19 +29,19 @@
 
 .img-grid{
   display:grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap:16px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
 }
 
 .img-card{
-  border-radius:12px;
+  border-radius: 12px;
   overflow:hidden;
   background:#f3f4f6;
   padding: 10px;
 }
 
 .img-media{
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 16 / 12;
   overflow:hidden;
   border-radius: 12px;
   background: #e5e7eb;
