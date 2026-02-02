@@ -13,7 +13,8 @@ def status():
 
 @api_bp.route("/menu", methods=["GET"])
 def api_menu():
-    items = get_menu_boxes(group_by_category=True)
+    lang = (request.args.get("lang") or "en").strip().lower()
+    items = get_menu_boxes(group_by_category=True, target_language=lang)
     return jsonify(items)
 
 
@@ -32,6 +33,7 @@ def api_translate():
         "target_language": target,
         "translated": translated
     })
+
 
 
 
