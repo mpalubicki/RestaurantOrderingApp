@@ -24,6 +24,13 @@ def _strip_or_none(v: str | None) -> str | None:
     return v if v else None
 
 
+def _csv_set(v: str | None) -> set[str]:
+    v = _strip_or_none(v)
+    if not v:
+        return set()
+    return {x.strip().lower() for x in v.split(",") if x.strip()}
+
+
 def _normalize_mongo_uri(uri: str | None) -> str | None:
     uri = _strip_or_none(uri)
     if not uri:
@@ -50,16 +57,16 @@ class Config:
     DB_NAME = _strip_or_none(os.getenv("DB_NAME"))
     DB_USER = _strip_or_none(os.getenv("DB_USER"))
     INSTANCE_CONNECTION_NAME = _strip_or_none(os.getenv("INSTANCE_CONNECTION_NAME"))
-
     GCS_BUCKET = _strip_or_none(os.getenv("GCS_BUCKET"))
+    ADMIN_EMAILS = set()
 
     if _running_on_gae():
         from app.security.secrets import get_secret
 
         SECRET_KEY = _strip_or_none(get_secret("SECRET_KEY"))
         MONGO_URI = _normalize_mongo_uri(get_secret("MONGO_URI"))
-
         DB_PASSWORD = _strip_or_none(get_secret("DB_PASSWORD"))
+        ADMIN_EMAILS = _csv_set(get_secret("ADMIN_EMAILS"))
 
         if DB_NAME and DB_USER and INSTANCE_CONNECTION_NAME and DB_PASSWORD:
             SQLALCHEMY_DATABASE_URI = _build_cloudsql_postgres_uri(
@@ -73,8 +80,8 @@ class Config:
     else:
         SECRET_KEY = _strip_or_none(os.getenv("SECRET_KEY"))
         MONGO_URI = _normalize_mongo_uri(os.getenv("MONGO_URI"))
-
-        SQLALCHEMY_DATABASE_URI = _strip_or_none(
-            os.getenv("SQLALCHEMY_DATABASE_URI") or os.getenv("DATABASE_URL")
+        ADMIN_EMAILS = _csv_set(os.getenv("ADMIN_EMAILS"))
+        SQLALCHEMY_DATABASE_URI = _strip_or_none(os.getenv("SQLALCHEMY_DATABASE_URI") or os.getenv("DATABASE_URL")
         )
+
 
