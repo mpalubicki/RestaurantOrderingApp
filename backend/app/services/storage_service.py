@@ -4,11 +4,13 @@ from flask import current_app
 
 ALLOWED_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
 
+
 def _bucket_name() -> str:
     b = current_app.config.get("GCS_BUCKET")
     if not b:
         raise RuntimeError("Missing GCS_BUCKET configuration.")
     return b
+
 
 def _safe_extension(filename: str | None) -> str:
     name = (filename or "").strip().lower()
@@ -17,6 +19,7 @@ def _safe_extension(filename: str | None) -> str:
         if ext in ALLOWED_EXTS:
             return ext
     return ".jpg"
+
 
 def upload_menu_image(file_storage, folder: str = "menu") -> dict:
     client = storage.Client()
@@ -35,6 +38,7 @@ def upload_menu_image(file_storage, folder: str = "menu") -> dict:
 
     url = f"https://storage.googleapis.com/{bucket_name}/{object_name}"
     return {"url": url, "object_name": object_name}
+
 
 def delete_gcs_object(object_name: str) -> None:
     client = storage.Client()
