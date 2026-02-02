@@ -2,29 +2,33 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app.extensions import db
 from app.models.user_model import User
 from flask import current_app
+from __future__ import annotations
 
 
-def create_user_account(email: str, password: str, first_name: str, last_name: str) -> User:
+def create_user_account(
+    email: str,
+    password: str,
+    first_name: str | None = None,
+    last_name: str | None = None,
+) -> User:
     email = (email or "").strip().lower()
-    first_name = (first_name or "").strip()
-    last_name = (last_name or "").strip()
-    password = password or ""
-
-    if not email or not password or not first_name or not last_name:
-        raise ValueError("All fields are required.")
+    if not email:
+        raise ValueError("Email is required")
 
     existing = User.query.filter_by(email=email).first()
     if existing:
-        raise ValueError("An account with that email already exists.")
+        raise ValueError("Email already registered")
 
-    admin_emails = current_app.config.get("ADMIN_EMAILS", set())
-    is_admin = (email or "").strip().lower() in admin_emails
+    password_hash = generate_password_hash(password)
+
+    admin_emails = current_app.config.get("ADMIN_EMAILS") or set()
+    is_admin = email in admin_emails
 
     user = User(
         email=email,
         password_hash=password_hash,
-        first_name=first_name,
-        last_name=last_name,
+        first_name=(first_name or "").strip() or None,
+        last_name=(last_name or "").strip() or None,
         is_admin=is_admin,
     )
 
@@ -53,4 +57,5 @@ def get_user_by_id(user_id: str) -> User | None:
     except Exception:
         return None
     return db.session.get(User, uid)
+
 
