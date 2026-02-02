@@ -8,7 +8,8 @@
 
   <h3>Items</h3>
   <ul>
-    {% for item in order.items %}
+    {# SQLAlchemy relationship is Order.order_items #}
+    {% for item in order.order_items %}
       <li>
         {{ item.name }} ({{ item.variant_label }}) x{{ item.qty }}
         — £{{ item.line_total }}
