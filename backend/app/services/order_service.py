@@ -6,6 +6,8 @@ from app.services.menu_service import get_menu_boxes
 from decimal import Decimal
 from app.extensions import db
 from app.models.sql_order_model import Order, OrderItem
+import os
+import requests
 
 
 
@@ -198,4 +200,31 @@ def cart_line_lookup(cart: dict, line_id: str) -> dict:
         if line.get("_id") == line_id:
             return line
     return {}
+
+def _notify_order_confirmation(order, order_items):
+    url = os.getenv("ORDER_CONFIRMATION_URL", "").strip()
+    if not url:
+        return
+
+    payload = {
+        "order_id": order.id,
+        "user_email": getattr(order.user, "email", None) if getattr(order, "user", None) else None,
+        "total_amount": float(order.total_amount or 0),
+        "currency": order.currency,
+        "items": [
+            {
+                "name": it.name,
+                "variant_label": it.variant_label,
+                "qty": it.qty,
+                "unit_price": float(it.unit_price or 0),
+                "line_total": float(it.line_total or 0),
+            }
+            for it in (order_items or [])
+        ],
+    }
+
+    try:
+        requests.post(url, json=payload, timeout=5)
+    except Exception:
+        pass
 
