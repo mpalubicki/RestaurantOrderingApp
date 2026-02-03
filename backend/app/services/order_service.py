@@ -8,6 +8,7 @@ from app.extensions import db
 from app.models.sql_order_model import Order, OrderItem
 import os
 import requests
+from sqlalchemy.orm import joinedload
 
 
 
@@ -171,7 +172,7 @@ def checkout_to_sql_order() -> int:
         total_amount=Decimal(str(total)).quantize(Decimal("0.01")),
     )
     db.session.add(order)
-    db.session.flush()  # gets order.id without committing yet
+    db.session.flush()  
 
     for line in items:
         unit = Decimal(str(line["unit_price"])).quantize(Decimal("0.01"))
@@ -202,16 +203,20 @@ def cart_line_lookup(cart: dict, line_id: str) -> dict:
             return line
     return {}
 
-def _notify_order_confirmation(order, order_items):
+def _notify_order_confirmation(order, order_items) -> bool:
     url = os.getenv("ORDER_CONFIRMATION_URL", "").strip()
     if not url:
-        return
+        return False
 
     user_email = None
-    try:
-        user_email = getattr(current_user, "email", None)
-    except Exception:
-        user_email = None
+    if getattr(order, "user", None) is not None:
+        user_email = getattr(order.user, "email", None)
+
+    if not user_email:
+        try:
+            user_email = getattr(current_user, "email", None)
+        except Exception:
+            user_email = None
 
     payload = {
         "order_id": order.id,
@@ -231,7 +236,24 @@ def _notify_order_confirmation(order, order_items):
     }
 
     try:
-        requests.post(url, json=payload, timeout=5)
+        resp = requests.post(url, json=payload, timeout=5)
+        return resp.status_code < 400
     except Exception:
-        pass
+        return False
 
+
+def notify_order_confirmation_by_order_id(order_id: int) -> dict:
+    url = os.getenv("ORDER_CONFIRMATION_URL", "").strip()
+    if not url:
+        return {"ok": False, "error": "missing_ORDER_CONFIRMATION_URL"}
+
+    order = (
+        Order.query.options(joinedload(Order.order_items), joinedload(Order.user))
+        .filter_by(id=int(order_id))
+        .first()
+    )
+    if not order:
+        return {"ok": False, "error": "order_not_found"}
+
+    ok = _notify_order_confirmation(order, order.order_items)
+    return {"ok": bool(ok)}
