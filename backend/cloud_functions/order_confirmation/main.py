@@ -6,7 +6,9 @@ client = datastore.Client()
 
 def order_confirmation(request: Request):
     if request.method == "GET":
-        return jsonify({"ok": True, "message": "Function live. Send POST with JSON."}), 200
+        client.put(entity)
+        return jsonify({"ok": True, "version": "datastore-v1"}), 200
+
 
     if request.method != "POST":
         return jsonify({"error": "method_not_allowed"}), 405
