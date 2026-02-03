@@ -17,9 +17,15 @@ from app.services.order_service import (
     clear_cart,
     cart_totals,
     checkout_to_sql_order,
+    notify_order_confirmation_by_order_id
 )
-from app.services.admin_service import get_recent_orders_for_admin
 
+from app.services.admin_service import get_recent_orders_for_admin, get_order_for_admin
+from app.services.datastore_service import (
+    list_order_confirmations,
+    get_order_confirmation,
+    delete_order_confirmation,
+)
 
 api_bp = Blueprint("api", __name__, url_prefix="/api")
 
@@ -422,3 +428,99 @@ def api_admin_delete_image(image_id: str):
 
     mongo.db.uploaded_images.delete_one({"_id": oid})
     return jsonify({"ok": True})
+
+
+@api_bp.route("/admin/orders/<int:order_id>", methods=["GET"])
+@login_required
+def api_admin_order_detail(order_id: int):
+    guard = _admin_only()
+    if guard:
+        return guard
+
+    doc = get_order_for_admin(order_id)
+    if not doc:
+        return jsonify({"error": "order_not_found"}), 404
+
+    return jsonify(doc), 200
+
+
+@api_bp.route("/admin/orders/<int:order_id>/status", methods=["PATCH"])
+@login_required
+def api_admin_order_update_status(order_id: int):
+    guard = _admin_only()
+    if guard:
+        return guard
+
+    data = request.get_json(silent=True) or {}
+    status = (data.get("status") or "").strip().lower()
+
+    allowed = {"created", "paid", "preparing", "ready", "completed", "cancelled"}
+    if status not in allowed:
+        return jsonify({"error": "invalid_status", "allowed": sorted(allowed)}), 400
+
+    order = Order.query.filter_by(id=int(order_id)).first()
+    if not order:
+        return jsonify({"error": "order_not_found"}), 404
+
+    order.status = status
+    db.session.commit()
+
+    return jsonify({"ok": True, "order_id": order.id, "status": order.status}), 200
+
+
+@api_bp.route("/admin/orders/<int:order_id>/notify", methods=["POST"])
+@login_required
+def api_admin_order_notify(order_id: int):
+    guard = _admin_only()
+    if guard:
+        return guard
+
+    result = notify_order_confirmation_by_order_id(order_id)
+    code = 200 if result.get("ok") else 400
+    return jsonify(result), code
+
+
+@api_bp.route("/admin/order-confirmations", methods=["GET"])
+@login_required
+def api_admin_order_confirmations():
+    guard = _admin_only()
+    if guard:
+        return guard
+
+    limit = request.args.get("limit", "50")
+    try:
+        docs = list_order_confirmations(limit=int(limit))
+    except Exception as e:
+        return jsonify({"error": "datastore_read_failed", "details": repr(e)}), 500
+
+    return jsonify({"results": docs}), 200
+
+
+@api_bp.route("/admin/order-confirmations/<order_id>", methods=["GET"])
+@login_required
+def api_admin_order_confirmation_detail(order_id: str):
+    guard = _admin_only()
+    if guard:
+        return guard
+
+    doc = get_order_confirmation(order_id)
+    if not doc:
+        return jsonify({"error": "not_found"}), 404
+    return jsonify(doc), 200
+
+
+@api_bp.route("/admin/order-confirmations/<order_id>", methods=["DELETE"])
+@login_required
+def api_admin_order_confirmation_delete(order_id: str):
+    guard = _admin_only()
+    if guard:
+        return guard
+
+    try:
+        ok = delete_order_confirmation(order_id)
+    except Exception as e:
+        return jsonify({"error": "datastore_delete_failed", "details": repr(e)}), 500
+
+    if not ok:
+        return jsonify({"error": "not_found"}), 404
+    return jsonify({"ok": True}), 200
