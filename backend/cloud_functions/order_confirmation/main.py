@@ -7,6 +7,9 @@ from google.cloud import firestore
 db = firestore.Client()
 
 def order_confirmation(request: Request):
+    if request.method == "GET":
+        return jsonify({"ok": True, "message": "Function live. Send POST with JSON."}), 200
+
     if request.method != "POST":
         return jsonify({"error": "method_not_allowed"}), 405
 
