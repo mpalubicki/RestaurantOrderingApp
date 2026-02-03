@@ -1,5 +1,12 @@
 import os
 import pytest
+import sys
+from pathlib import Path
+
+
+BACKEND_DIR = Path(__file__).resolve().parents[1]  
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
 
 
 @pytest.fixture()
@@ -9,7 +16,7 @@ def app():
 
     os.environ["SECRET_KEY"] = "test-secret"
     os.environ["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
-    os.environ["MONGO_URI"] = "mongodb://localhost:27017/test"  # won't connect unless used
+    os.environ["MONGO_URI"] = "mongodb://localhost:27017/test"  
     os.environ["WTF_CSRF_ENABLED"] = "False"
 
     from app import create_app
