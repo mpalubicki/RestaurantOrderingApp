@@ -191,6 +191,7 @@ def checkout_to_sql_order() -> int:
         db.session.add(oi)
 
     db.session.commit()
+    _notify_order_confirmation(order, order.order_items)
     clear_cart()
     return order.id
 
@@ -206,16 +207,22 @@ def _notify_order_confirmation(order, order_items):
     if not url:
         return
 
+    user_email = None
+    try:
+        user_email = getattr(current_user, "email", None)
+    except Exception:
+        user_email = None
+
     payload = {
         "order_id": order.id,
-        "user_email": getattr(order.user, "email", None) if getattr(order, "user", None) else None,
+        "user_email": user_email,
         "total_amount": float(order.total_amount or 0),
         "currency": order.currency,
         "items": [
             {
                 "name": it.name,
                 "variant_label": it.variant_label,
-                "qty": it.qty,
+                "qty": int(it.qty or 0),
                 "unit_price": float(it.unit_price or 0),
                 "line_total": float(it.line_total or 0),
             }
