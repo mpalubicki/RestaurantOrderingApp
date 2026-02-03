@@ -16,12 +16,12 @@ def create_app():
     csrf.init_app(app)
 
     if app.config.get("SQLALCHEMY_DATABASE_URI"):
-       db.init_app(app)
+        db.init_app(app)
     else:
-       app.logger.warning("SQLALCHEMY_DATABASE_URI not set; skipping SQLAlchemy init")
-
+        app.logger.warning("SQLALCHEMY_DATABASE_URI not set; skipping SQLAlchemy init")
 
     login_manager.login_view = "auth.login"
+
     @login_manager.user_loader
     def load_user(user_id):
         return get_user_by_id(user_id)
@@ -38,9 +38,8 @@ def create_app():
     app.register_blueprint(menu_bp)
     app.register_blueprint(order_bp)
     app.register_blueprint(admin_bp)
+
+    csrf.exempt(api_bp)
     app.register_blueprint(api_bp)
 
     return app
-
-
-
