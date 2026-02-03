@@ -1,48 +1,44 @@
-from app.models.user_model import User
-from app.models.sql_order_model import Order
+from datetime import datetime
 from sqlalchemy.orm import joinedload
+from ..extensions import db
+from ..models.sql_order_model import Order, OrderItem
+from ..models.user_model import User
 
 
-def _order_to_dict(o: Order) -> dict:
-    return {
-        "order_id": o.id,
-        "created_at": o.created_at,
-        "status": o.status,
-        "currency": o.currency,
-        "total": float(o.total_amount or 0),
-        "user_id": o.user_id,
-        "user_email": getattr(o.user, "email", None) if getattr(o, "user", None) else None,
-        "items": [
+def _order_to_dict(order: Order) -> dict:
+    user = order.user 
+    items = []
+    for it in order.items:
+        items.append(
             {
-                "menu_item_id": oi.menu_item_id,
-                "variant_id": oi.variant_id,
-                "name": oi.name,
-                "variant_label": oi.variant_label,
-                "qty": oi.qty,
-                "unit_price": float(oi.unit_price or 0),
-                "line_total": float(oi.line_total or 0),
+                "id": it.id,
+                "menu_item_id": it.menu_item_id,
+                "name": it.name,
+                "variant": it.variant,
+                "quantity": it.quantity,
+                "price": float(it.price or 0),
             }
-            for oi in (o.order_items or [])
-        ],
+        )
+
+    return {
+        "id": order.id,
+        "created_at": order.created_at.isoformat() if order.created_at else None,
+        "status": order.status,
+        "total": float(order.total or 0),
+        "user_email": getattr(user, "email", None),
+        "items": items,
+        "user_first_name": getattr(user, "first_name", "") or "",
+        "user_last_name": getattr(user, "last_name", "") or "",
+        "order_items": items,
     }
 
 
-def get_recent_orders_for_admin(limit: int = 50):
-    orders = (
-        Order.query.options(joinedload(Order.order_items), joinedload(Order.user))
+def get_recent_orders_for_admin(limit: int = 50) -> list[dict]:
+    q = (
+        db.session.query(Order)
+        .options(joinedload(Order.items), joinedload(Order.user))
         .order_by(Order.created_at.desc())
-        .limit(int(limit))
-        .all()
+        .limit(limit)
     )
+    orders = q.all()
     return [_order_to_dict(o) for o in orders]
-
-
-def get_order_for_admin(order_id: int) -> dict | None:
-    o = (
-        Order.query.options(joinedload(Order.order_items), joinedload(Order.user))
-        .filter_by(id=int(order_id))
-        .first()
-    )
-    if not o:
-        return None
-    return _order_to_dict(o)
